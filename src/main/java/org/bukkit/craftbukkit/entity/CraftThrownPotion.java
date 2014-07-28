@@ -11,6 +11,8 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 
@@ -19,9 +21,18 @@ public class CraftThrownPotion extends CraftProjectile implements ThrownPotion {
         super(server, entity);
     }
 
-    // TODO: This one does not handle custom NBT potion effects does it?
-    // In that case this method could be said to be misleading or incorrect
     public Collection<PotionEffect> getEffects() {
+        // We need to check if there are custom effects first
+        if (getItem().hasItemMeta()) {
+            ItemMeta itemMeta = getItem().getItemMeta();
+            if (itemMeta instanceof PotionMeta) {
+                PotionMeta potionMeta = (PotionMeta) itemMeta;
+                if (potionMeta.hasCustomEffects()) {
+                    // With custom effects present, Minecraft ignores damage value
+                    return potionMeta.getCustomEffects();
+                }
+            }
+        }
         return Potion.getBrewer().getEffectsFromDamage(getHandle().getPotionValue());
     }
 
